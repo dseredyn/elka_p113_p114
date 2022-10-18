@@ -48,6 +48,11 @@ def thr_cmd(arg, cmd_shell, results):
     ret = subprocess.run(cmd_shell, stdout=subprocess.PIPE, shell=True)
     results.addResult(arg, ret.returncode, ret.stdout.decode("utf-8"))
 
+def getCurrentRoom():
+    with open('room.txt') as f:
+        room = f.read()
+    return room
+
 def getNamesIp(pw):
     t_list = []
     results = Results()

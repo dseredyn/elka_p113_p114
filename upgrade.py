@@ -39,7 +39,7 @@ def main(pw):
     for name, ip in sorted(name_ip_list, key=lambda x:x[0]):
         print('{}: {}'.format(name, ip))
 
-    room = 'p114'
+    room = getCurrentRoom()
     names_list = getNamesForRoom(room)
 
     ip_list = selectIPs(name_ip_list, names_list)
@@ -47,6 +47,12 @@ def main(pw):
     print(ip_list)
 
     results = upgrade(ip_list, pw)
+
+    print('Run for the following hosts:')
+    for name, ip in sorted(name_ip_list, key=lambda x:x[0]):
+        if ip in ip_list:
+            print('{}: {}'.format(name, ip))
+
     printResults(results)
 
     return 0
