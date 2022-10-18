@@ -21,7 +21,26 @@ class Results:
     def getAll(self):
         return self.__results
 
-def printResults(results):
+    def hasAnyErrors(self, key):
+        if not key in self.__results:
+            return False
+        # else:
+        for code, out in self.__results[key]:
+            if code != 0:
+                return True
+        return False
+
+    def hasAllErrors(self, key):
+        if not key in self.__results:
+            return False
+        # else:
+        for code, out in self.__results[key]:
+            if code == 0:
+                return False
+        return True
+
+
+def printResults(results, report_any_error=True):
     assert isinstance(results, Results)
     print('*****************************')
     print('*****************************')
@@ -32,11 +51,16 @@ def printResults(results):
     for key in sorted( results.getAll().keys() ):
         res = results.getAll()[key]
         print('********** Results for "{}" **********'.format(key))
+        if report_any_error:
+            if results.hasAnyErrors(key):
+                errors.add(key)
+        else:
+            if results.hasAllErrors(key):
+                errors.add(key)
+
         for code, out in res:
             print('***** result code: {}'.format(code))
             print('***** output:\n{}'.format(out))
-            if code != 0:
-                errors.add(key)
 
     if errors:
         print('Errors detected for: {}'.format(errors))
@@ -51,7 +75,7 @@ def thr_cmd(arg, cmd_shell, results):
 def getCurrentRoom():
     with open('room.txt') as f:
         room = f.read()
-    return room
+    return room.strip()
 
 def getNamesIp(pw):
     t_list = []
@@ -101,58 +125,68 @@ def getNamesForRoom(room):
     raise Exception('Wrong room name: "{}"'.format(room))
 
 def clearHomeDir(pw, ip_list):
-    for username in ['user', 'uzytkownik']:
-        results = {}
-        t_list = []
-        for ip in ip_list:
-            print('{}'.format(ip))
-            cmd_shell = 'sshpass -p {} ssh -o ConnectTimeout=2 {} "echo {} | sudo -S rm -rf /home/{}/*/*; echo {} | sudo -S find /home/{} -maxdepth 1 -type f -not -path \'*/\.*\' -delete"'.format(pw, ip, pw, username, pw, username)
-            t = threading.Thread(target=thr_cmd, args=(ip, cmd_shell, results))
-            t.start()
-            t_list.append( (t, ip) )
+    pw = 'elkap113p114'
 
-        for t, ip in t_list:
-            print('waiting for {}'.format(ip))
-            t.join()
-    return results
-
-def clearTrash(pw, ip_list):
-    for username in ['user', 'uzytkownik']:
-        results = {}
-        t_list = []
-        for ip in ip_list:
-            print('{}'.format(ip))
-            cmd_shell = 'sshpass -p {} ssh -o ConnectTimeout=2 {} "echo {} | sudo -S rm -rf /home/{}/.local/share/Trash/*"'.format(pw, ip, pw, username, pw, username, pw, username)
-            t = threading.Thread(target=thr_cmd, args=(ip, cmd_shell, results))
-            t.start()
-            t_list.append( (t, ip) )
-
-        for t, ip in t_list:
-            print('waiting for {}'.format(ip))
-            t.join()
-    return results
-
-def install(ip_list):
     results = {}
-    t_list = []
-    for ip in ip_list:
-        print('{}'.format(ip))
-        cmd_shell = 'ssh -o ConnectTimeout=2 {} "echo {} | sudo -S apt install -y fritzing-data fritzing-parts"'.format(ip, pw)
-        t = threading.Thread(target=thr_cmd, args=(ip, cmd_shell, pw, results))
-        t.start()
-        t_list.append( (t, ip) )
 
-    for t, ip in t_list:
-        print('waiting for {}'.format(ip))
-        t.join()
+    for username in ['user', 'uzytkownik']:
+        results[username] = Results()
 
-    #name_ip_list = []
-    #for ip in sorted(results2.keys()):
-    #    name_ip_list.append( (results[ip].strip(), '192.168.9.{}'.format(ip)) )
+        print('Copying home dir template...')
+        t_list = []
+        for ip in ip_list:
+            print('{}'.format(ip))
+            cmd_shell = 'sshpass -p {} scp -o ConnectTimeout=2 home_user.tar {}@{}:/tmp/home_user.tar'.format(pw, username, ip)
+            t = threading.Thread(target=thr_cmd, args=(ip, cmd_shell, results[username]))
+            t.start()
+            t_list.append( (t, ip) )
+
+        for t, ip in t_list:
+            print('waiting for {}'.format(ip))
+            t.join()
+
+# find /home/user/ -mindepth 1 -maxdepth 1 -name "*" -exec echo '{}' \;
+        print('Restoring home dir...')
+        t_list = []
+        for ip in ip_list:
+            print('{}'.format(ip))
+            cmd_shell = 'sshpass -p {} ssh -o ConnectTimeout=2 {}@{} "cd && find /home/{}/ -mindepth 1 -maxdepth 1 -name \'*\' -exec rm -rf \'{{}}\' \\; && tar -xf /tmp/home_user.tar"'.format(pw, username, ip, username, username, username)
+            t = threading.Thread(target=thr_cmd, args=(ip, cmd_shell, results[username]))
+            t.start()
+            t_list.append( (t, ip) )
+
+        for t, ip in t_list:
+            print('waiting for {}'.format(ip))
+            t.join()
+
+        print('Removing home dir template...')
+        t_list = []
+        for ip in ip_list:
+            print('{}'.format(ip))
+            cmd_shell = 'sshpass -p {} ssh -o ConnectTimeout=2 {}@{} "rm /tmp/home_user.tar"'.format(pw, username, ip)
+            t = threading.Thread(target=thr_cmd, args=(ip, cmd_shell, results[username]))
+            t.start()
+            t_list.append( (t, ip) )
+
+        for t, ip in t_list:
+            print('waiting for {}'.format(ip))
+            t.join()
+
+        # t_list = []
+        # for ip in ip_list:
+        #     print('{}'.format(ip))
+        #     cmd_shell = 'sshpass -p {} ssh -o ConnectTimeout=2 {} "echo {} | sudo -S rm -rf /home/{}/*/*; echo {} | sudo -S find /home/{} -maxdepth 1 -type f -not -path \'*/\.*\' -delete"'.format(pw, ip, pw, username, pw, username)
+        #     t = threading.Thread(target=thr_cmd, args=(ip, cmd_shell, results))
+        #     t.start()
+        #     t_list.append( (t, ip) )
+
+        # for t, ip in t_list:
+        #     print('waiting for {}'.format(ip))
+        #     t.join()
     return results
 
 def shutdown(ip_list, pw):
-    results = {}
+    results = Results()
     t_list = []
     for ip in ip_list:
         print('{}'.format(ip))

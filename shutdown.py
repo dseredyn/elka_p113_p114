@@ -4,7 +4,7 @@ import os
 import threading
 import subprocess
 from getpass import getpass
-from remote_utils import getNamesIp, selectIPs, shutdown, getNamesForRoom
+from remote_utils import getNamesIp, selectIPs, shutdown, getCurrentRoom, getNamesForRoom, printResults
 
 def main(pw):
     name_ip_list = getNamesIp(pw)

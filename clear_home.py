@@ -4,7 +4,42 @@ import os
 import threading
 import subprocess
 from getpass import getpass
-from remote_utils import getNamesIp, selectIPs, clearHomeDir, getNamesForRoom
+from remote_utils import getNamesIp, selectIPs, clearHomeDir, getCurrentRoom, getNamesForRoom
+
+def printResults(results):
+    print('*****************************')
+    print('*****************************')
+    print('********** RESULTS **********')
+    print('*****************************')
+    print('*****************************')
+    errors = set()
+    usernames = list(results.keys())
+    for key in sorted( results[usernames[0]].getAll().keys() ):
+        selected_username = None
+        for username in usernames:
+            if not results[username].hasAnyErrors(key):
+                selected_username = username
+                break
+
+        if selected_username is None:
+            errors.add(key)
+            for username in usernames:
+                res = results[username].getAll()[key]
+                print('********** Results for "{}" **********'.format(key))
+                for code, out in res:
+                    print('***** result code: {}'.format(code))
+                    print('***** output:\n{}'.format(out))
+        else:
+            res = results[selected_username].getAll()[key]
+            print('********** Results for "{}" **********'.format(key))
+            for code, out in res:
+                print('***** result code: {}'.format(code))
+                print('***** output:\n{}'.format(out))
+
+    if errors:
+        print('Errors detected for: {}'.format(errors))
+    else:
+        print('No errors detected')
 
 def main(pw):
     name_ip_list = getNamesIp(pw)

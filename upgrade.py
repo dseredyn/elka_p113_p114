@@ -4,7 +4,7 @@ import os
 import threading
 import subprocess
 from getpass import getpass
-from remote_utils import thr_cmd, getNamesIp, selectIPs, Results, printResults, getNamesForRoom
+from remote_utils import thr_cmd, getNamesIp, selectIPs, Results, printResults, getNamesForRoom, getCurrentRoom
 
 def upgrade(ip_list, pw):
     results = Results()

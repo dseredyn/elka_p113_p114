@@ -5,7 +5,7 @@ import sys
 import threading
 import subprocess
 from getpass import getpass
-from remote_utils import thr_cmd, getNamesIp, selectIPs, Results, printResults, getNamesForRoom
+from remote_utils import thr_cmd, getNamesIp, selectIPs, Results, printResults, getNamesForRoom, getCurrentRoom
 
 def extractFilename(path):
     idx = path.rfind('/')
