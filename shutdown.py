@@ -13,6 +13,8 @@ def main(pw):
 
     room = getCurrentRoom()
     names_list = getNamesForRoom(room)
+    names_list.remove('lab-25')
+    print(names_list)
 
     ip_list = selectIPs(name_ip_list, names_list)
     print('selected ips:')
