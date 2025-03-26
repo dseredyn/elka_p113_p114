@@ -89,13 +89,18 @@ def getNamesIp(pw):
     for t in t_list:
         t.join()
 
+    all_found_ips = []
+    ssh_ips = []
+
     results2 = Results()
     t_list = []
     for i in sorted(results.getAll().keys()):
         if results.getAll()[i][0][0] == 0:
             #print('getNamesIp: {}, {}'.format(i, results.getAll()[i]))
             #print('{}'.format(i))
-            cmd_shell = 'sshpass -p {} ssh -o ConnectTimeout=2 192.168.9.{} "uname --nodename"'.format(pw, i)
+            ip_str = '192.168.9.{}'.format(i)
+            all_found_ips.append(ip_str)
+            cmd_shell = 'sshpass -p {} ssh -o ConnectTimeout=2 {} "uname --nodename"'.format(pw, ip_str)
 
             #cmd_shell = 'echo "{}" | ssh -s -o ConnectTimeout=2 192.168.9.{} "uname --nodename"'.format(pw, i)
             t = threading.Thread(target=thr_cmd, args=(i, cmd_shell, results2))
@@ -107,7 +112,24 @@ def getNamesIp(pw):
 
     name_ip_list = []
     for ip in sorted(results2.getAll().keys()):
-        name_ip_list.append( (results2.getAll()[ip][0][1].strip(), '192.168.9.{}'.format(ip)) )
+        ip_str = '192.168.9.{}'.format(ip)
+        name_ip_list.append( (results2.getAll()[ip][0][1].strip(), ip_str) )
+        ssh_ips.append(ip_str)
+
+    print(all_found_ips)
+    print(ssh_ips)
+    for ip_str in all_found_ips:
+
+        if not ip_str in ssh_ips:
+    # # Get ip that failed for ssh connection
+    # for i in sorted(results.getAll().keys()):
+    #     if results.getAll()[i][0][0] == 0:
+    #         ip_str = '192.168.9.{}'.format(i)
+    #         if not ip_str in found_ips:
+            print('failed to ssh to ip: {}'.format(ip_str))
+        else:
+            print('ssh ip: {}'.format(ip_str))
+
     #print('{}'.format(name_ip_list))
     return name_ip_list
 
