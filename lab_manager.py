@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+# Author: Dawid Seredyński
+# License: Apache 2.0
+
 import os
 
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QVBoxLayout,\
