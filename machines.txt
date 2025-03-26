@@ -1,3 +1,4 @@
+# machine_name room
 lab-01 P113
 lab-02 P113
 lab-03 P113

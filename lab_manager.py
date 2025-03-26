@@ -24,7 +24,10 @@ def readMachines():
     with open('machines.txt', 'r') as f:
         lines = f.readlines()
     result = []
-    for line in lines:
+    for l in lines:
+        line = l.strip()
+        if line.startswith('#'):
+            continue
         items = line.split()
         result.append( (items[0], items[1]) )
     return result
